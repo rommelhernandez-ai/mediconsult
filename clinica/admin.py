@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from .models import Horario, Medico, Paciente
 
+from .models import Cita, Horario, Medico, Paciente
+
 
 @admin.register(Paciente)
 class PacienteAdmin(admin.ModelAdmin):
@@ -20,3 +22,12 @@ class MedicoAdmin(admin.ModelAdmin):
     list_filter = ("especialidad", "activo")
     search_fields = ("nombre", "apellidos")
     inlines = [HorarioInline]
+
+
+
+@admin.register(Cita)
+class CitaAdmin(admin.ModelAdmin):
+    list_display = ("fecha", "hora", "paciente", "medico", "estado")
+    list_filter = ("estado", "medico", "fecha")
+    search_fields = ("paciente__nombre", "paciente__apellidos", "motivo")
+    date_hierarchy = "fecha"

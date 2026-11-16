@@ -67,3 +67,25 @@ class Horario(models.Model):
             raise ValidationError(
                 {"hora_fin": "La hora de fin debe ser posterior a la hora de inicio."}
             )
+
+class Cita(models.Model):
+    ESTADOS = [
+        ("PROGRAMADA", "Programada"),
+        ("ATENDIDA", "Atendida"),
+        ("CANCELADA", "Cancelada"),
+    ]
+
+    paciente = models.ForeignKey(Paciente, on_delete=models.PROTECT, related_name="citas")
+    medico = models.ForeignKey(Medico, on_delete=models.PROTECT, related_name="citas")
+    fecha = models.DateField()
+    hora = models.TimeField()
+    motivo = models.CharField(max_length=200)
+    estado = models.CharField(max_length=15, choices=ESTADOS, default="PROGRAMADA")
+    notas = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["fecha", "hora"]
+
+    def __str__(self):
+        return f"{self.fecha:%d/%m/%Y} {self.hora:%H:%M} - {self.paciente} con {self.medico}"
