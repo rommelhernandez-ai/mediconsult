@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Medico, Paciente
+from .models import Horario, Medico, Paciente
 
 
 @admin.register(Paciente)
@@ -9,8 +9,14 @@ class PacienteAdmin(admin.ModelAdmin):
     search_fields = ("nombre", "apellidos")
 
 
+class HorarioInline(admin.TabularInline):
+    model = Horario
+    extra = 1
+
+
 @admin.register(Medico)
 class MedicoAdmin(admin.ModelAdmin):
     list_display = ("nombre", "apellidos", "especialidad", "activo")
     list_filter = ("especialidad", "activo")
     search_fields = ("nombre", "apellidos")
+    inlines = [HorarioInline]

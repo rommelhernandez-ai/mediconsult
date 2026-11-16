@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class Paciente(models.Model):
@@ -34,3 +35,35 @@ class Medico(models.Model):
 
     def __str__(self):
         return f"Dr(a). {self.nombre} {self.apellidos} - {self.get_especialidad_display()}"
+
+
+class Horario(models.Model):
+    DIAS = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miércoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sábado"),
+        (6, "Domingo"),
+    ]
+
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE, related_name="horarios")
+    dia_semana = models.IntegerField(choices=DIAS)
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+
+    class Meta:
+        verbose_name = "horario"
+        verbose_name_plural = "horarios"
+        ordering = ["medico", "dia_semana", "hora_inicio"]
+
+    def __str__(self):
+        return f"{self.medico.nombre} {self.medico.apellidos} - {self.get_dia_semana_display()} {self.hora_inicio:%H:%M}-{self.hora_fin:%H:%M}"
+
+    
+    def clean(self):
+        if self.hora_inicio and self.hora_fin and self.hora_fin <= self.hora_inicio:
+            raise ValidationError(
+                {"hora_fin": "La hora de fin debe ser posterior a la hora de inicio."}
+            )
