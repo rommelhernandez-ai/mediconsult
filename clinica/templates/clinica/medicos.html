@@ -1,0 +1,53 @@
+{% extends "clinica/base.html" %}
+{% block titulo %}Médicos | MediConsult{% endblock %}
+{% block contenido %}
+<h1 class="h3">Médicos y horarios</h1>
+<div class="row g-4">
+    <section class="col-lg-4">
+        <div class="card card-body">
+            <h2 class="h5">{% if medico_edicion %}Editar médico{% else %}Registrar médico{% endif %}</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ formulario.as_p }}
+                <button class="btn btn-primary">Guardar</button>
+                {% if medico_edicion %}<a class="btn btn-link" href="{% url 'medicos' %}">Cancelar</a>{% endif %}
+            </form>
+        </div>
+        <div class="card card-body mt-3">
+            <h2 class="h5">Agregar horario</h2>
+            <form method="post" action="{% url 'agregar_horario' %}">
+                {% csrf_token %}
+                {{ horario_form.as_p }}
+                <button class="btn btn-outline-primary">Guardar horario</button>
+            </form>
+        </div>
+    </section>
+    <section class="col-lg-8">
+        <form method="get" class="d-flex gap-2 mb-3">
+            <input class="form-control" type="search" name="q" value="{{ termino }}" placeholder="Nombre, especialidad o teléfono" aria-label="Buscar médicos">
+            <button class="btn btn-outline-secondary">Buscar</button>
+            <a class="btn btn-link" href="{% url 'medicos' %}">Limpiar</a>
+        </form>
+        {% for medico in medicos %}
+        <div class="card card-body mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="h5 mb-1">{{ medico.nombre }} {{ medico.apellidos }}</h2>
+                    <div>{{ medico.get_especialidad_display }} · {% if medico.activo %}Activo{% else %}Inactivo{% endif %} · {{ medico.telefono }}</div>
+                </div>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_medico' medico.id %}">Editar</a>
+            </div>
+            <ul class="mb-0 mt-2">
+                {% for h in medico.horarios.all %}
+                <li>{{ h.get_dia_semana_display }}: {{ h.hora_inicio|time:"H:i" }} a {{ h.hora_fin|time:"H:i" }}</li>
+                {% empty %}
+                <li class="text-muted">Sin horarios registrados.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% empty %}
+        <p>No hay médicos que coincidan con la búsqueda.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

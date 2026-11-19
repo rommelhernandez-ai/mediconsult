@@ -1,0 +1,42 @@
+{% extends "clinica/base.html" %}
+{% block titulo %}Pacientes | MediConsult{% endblock %}
+{% block contenido %}
+<h1 class="h3">Pacientes</h1>
+<div class="row g-4">
+    <section class="col-lg-4">
+        <div class="card card-body">
+            <h2 class="h5">{% if paciente_edicion %}Editar paciente{% else %}Registrar paciente{% endif %}</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ formulario.as_p }}
+                <button class="btn btn-primary">Guardar</button>
+                {% if paciente_edicion %}<a class="btn btn-link" href="{% url 'pacientes' %}">Cancelar</a>{% endif %}
+            </form>
+        </div>
+    </section>
+    <section class="col-lg-8">
+        <form method="get" class="d-flex gap-2 mb-3">
+            <input class="form-control" type="search" name="q" value="{{ termino }}" placeholder="Nombre, teléfono o correo" aria-label="Buscar pacientes">
+            <button class="btn btn-outline-secondary">Buscar</button>
+            <a class="btn btn-link" href="{% url 'pacientes' %}">Limpiar</a>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th></th></tr></thead>
+                <tbody>
+                    {% for p in pacientes %}
+                    <tr>
+                        <td>{{ p.nombre }} {{ p.apellidos }}</td>
+                        <td>{{ p.telefono }}</td>
+                        <td>{{ p.correo|default:"—" }}</td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'editar_paciente' p.id %}">Editar</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">No hay pacientes que coincidan con la búsqueda.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
