@@ -1,0 +1,8 @@
+{% extends "clinica/base.html" %}
+{% block titulo %}Agenda | MediConsult{% endblock %}
+{% block contenido %}
+<h1 class="h3">Agenda de citas</h1>
+<div class="row g-4"><section class="col-lg-4"><div class="card card-body"><h2 class="h5">Agendar cita</h2><p class="small text-muted">El horario debe estar registrado para el médico y no tener otra cita.</p><form method="post">{% csrf_token %}{{ formulario.as_p }}<button class="btn btn-primary">Agendar</button></form></div></section>
+<section class="col-lg-8"><form method="get" class="d-flex gap-2 mb-3"><input class="form-control" type="date" name="fecha" value="{{ filtro_fecha }}"><button class="btn btn-outline-secondary">Buscar fecha</button><a class="btn btn-link" href="{% url 'agenda' %}">Ver todas</a></form>
+<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Fecha</th><th>Hora</th><th>Paciente y médico</th><th>Estado</th><th></th></tr></thead><tbody>{% for cita in citas %}<tr><td>{{ cita.fecha|date:"d/m/Y" }}</td><td>{{ cita.hora|time:"H:i" }}</td><td>{{ cita.paciente }}<br><small>{{ cita.medico }}</small></td><td>{{ cita.get_estado_display }}</td><td>{% if cita.estado == "PROGRAMADA" %}<div class="d-flex gap-1"><form method="post" action="{% url 'cambiar_estado' cita.id 'ATENDIDA' %}">{% csrf_token %}<button class="btn btn-sm btn-success">Atendida</button></form><form method="post" action="{% url 'cambiar_estado' cita.id 'CANCELADA' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Cancelar</button></form></div>{% endif %}</td></tr>{% empty %}<tr><td colspan="5">No hay citas para mostrar.</td></tr>{% endfor %}</tbody></table></div></section></div>
+{% endblock %}
