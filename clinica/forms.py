@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from .models import Cita, Horario, Medico, Paciente
 
@@ -36,15 +37,33 @@ class CitaForm(FormularioSimple):
         fields = ["paciente", "medico", "fecha", "hora", "motivo"]
         widgets = {"fecha": forms.DateInput(attrs={"type": "date"}), "hora": forms.TimeInput(attrs={"type": "time"})}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["medico"].queryset = Medico.objects.filter(activo=True).order_by("apellidos", "nombre")
+
     def clean(self):
         datos = super().clean()
         medico, fecha, hora = datos.get("medico"), datos.get("fecha"), datos.get("hora")
         if not (medico and fecha and hora):
             return datos
 
-        horario = Horario.objects.filter(medico=medico, dia_semana=fecha.weekday()).first()
-        if not horario or not (horario.hora_inicio <= hora < horario.hora_fin):
-            self.add_error("hora", "El médico no tiene horario disponible a esa hora.")
-        if Cita.objects.filter(medico=medico, fecha=fecha, hora=hora, estado="PROGRAMADA").exists():
+        ahora = timezone.localtime()
+        if fecha < ahora.date() or (fecha == ahora.date() and hora <= ahora.time()):
+            self.add_error("fecha", "No se pueden agendar citas en fechas u horas pasadas.")
+            return datos
+
+        atiende = Horario.objects.filter(
+            medico=medico,
+            dia_semana=fecha.weekday(),
+            hora_inicio__lte=hora,
+            hora_fin__gt=hora,
+        ).exists()
+        if not atiende:
+            self.add_error("hora", "El médico no atiende ese día a esa hora.")
+
+        ocupada = Cita.objects.filter(medico=medico, fecha=fecha, hora=hora, estado="PROGRAMADA")
+        if self.instance.pk:
+            ocupada = ocupada.exclude(pk=self.instance.pk)
+        if ocupada.exists():
             self.add_error("hora", "Ese horario ya está ocupado.")
         return datos

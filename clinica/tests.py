@@ -1,8 +1,12 @@
-from django.test import TestCase
-from django.contrib.auth.models import Group, User
-from django.urls import reverse
+from datetime import timedelta
 
-from .models import Medico, Paciente
+from django.contrib.auth.models import Group, User
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from .forms import CitaForm
+from .models import Horario, Medico, Paciente
 
 
 class PacientesTests(TestCase):
@@ -95,3 +99,51 @@ class MedicosTests(TestCase):
             {"nombre": "No autorizado"},
         )
         self.assertEqual(respuesta.status_code, 403)
+
+
+class CitasTests(TestCase):
+    def setUp(self):
+        self.paciente = Paciente.objects.create(
+            nombre="Juan",
+            apellidos="Pérez López",
+            fecha_nacimiento="1990-03-15",
+            telefono="6641234567",
+        )
+        self.medico = Medico.objects.create(
+            nombre="Laura",
+            apellidos="Méndez Ortiz",
+            especialidad="PEDIATRIA",
+            telefono="6645552222",
+        )
+        hoy = timezone.localdate()
+        dias_para_miercoles = (2 - hoy.weekday()) % 7 or 7
+        self.proximo_miercoles = hoy + timedelta(days=dias_para_miercoles)
+        Horario.objects.create(medico=self.medico, dia_semana=2, hora_inicio="09:00", hora_fin="12:00")
+        Horario.objects.create(medico=self.medico, dia_semana=2, hora_inicio="15:00", hora_fin="19:00")
+
+    def datos_cita(self, **cambios):
+        datos = {
+            "paciente": self.paciente.pk,
+            "medico": self.medico.pk,
+            "fecha": self.proximo_miercoles,
+            "hora": "16:00",
+            "motivo": "Revisión general",
+        }
+        datos.update(cambios)
+        return datos
+
+    def test_acepta_cita_en_segundo_horario_del_dia(self):
+        formulario = CitaForm(self.datos_cita())
+        self.assertTrue(formulario.is_valid(), formulario.errors)
+
+    def test_rechaza_cita_en_fecha_pasada(self):
+        formulario = CitaForm(self.datos_cita(fecha="2025-01-01", hora="10:00"))
+        self.assertFalse(formulario.is_valid())
+        self.assertIn("fecha", formulario.errors)
+
+    def test_rechaza_medico_inactivo(self):
+        self.medico.activo = False
+        self.medico.save()
+        formulario = CitaForm(self.datos_cita())
+        self.assertFalse(formulario.is_valid())
+        self.assertIn("medico", formulario.errors)
