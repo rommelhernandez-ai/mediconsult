@@ -2,13 +2,19 @@ from django import forms
 from django.utils import timezone
 
 from .models import Cita, Horario, Medico, Paciente
+from .servicios import obtener_festivos
 
 
 class FormularioSimple(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for campo in self.fields.values():
-            campo.widget.attrs["class"] = "form-control"
+            if isinstance(campo.widget, forms.CheckboxInput):
+                campo.widget.attrs["class"] = "form-check-input"
+            elif isinstance(campo.widget, forms.Select):
+                campo.widget.attrs["class"] = "form-select"
+            else:
+                campo.widget.attrs["class"] = "form-control"
 
 
 class PacienteForm(FormularioSimple):
@@ -40,6 +46,7 @@ class CitaForm(FormularioSimple):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["medico"].queryset = Medico.objects.filter(activo=True).order_by("apellidos", "nombre")
+        self.festivos_no_disponibles = False
 
     def clean(self):
         datos = super().clean()
@@ -52,18 +59,7 @@ class CitaForm(FormularioSimple):
             self.add_error("fecha", "No se pueden agendar citas en fechas u horas pasadas.")
             return datos
 
-        atiende = Horario.objects.filter(
-            medico=medico,
-            dia_semana=fecha.weekday(),
-            hora_inicio__lte=hora,
-            hora_fin__gt=hora,
-        ).exists()
-        if not atiende:
-            self.add_error("hora", "El médico no atiende ese día a esa hora.")
-
-        ocupada = Cita.objects.filter(medico=medico, fecha=fecha, hora=hora, estado="PROGRAMADA")
-        if self.instance.pk:
-            ocupada = ocupada.exclude(pk=self.instance.pk)
-        if ocupada.exists():
-            self.add_error("hora", "Ese horario ya está ocupado.")
-        return datos
+        festivos = obtener_festivos(fecha.year)
+        self.festivos_no_disponibles = festivos is None
+        if festivos and fecha in festivos:
+            self.add_error("fecha", f"El {fecha:%d/%m/%Y} es día festivo ({festivos[fecha]}). No se agendan citas.")

@@ -148,6 +148,8 @@ def agenda(request):
     if request.method == "POST" and formulario.is_valid():
         formulario.save()
         messages.success(request, "Cita agendada.")
+        if formulario.festivos_no_disponibles:
+            messages.warning(request, "No se pudo consultar el calendario de días festivos. Verifica la fecha manualmente.")
         return redirect("agenda")
     citas = Cita.objects.select_related("paciente", "medico").order_by("fecha", "hora")
     filtro_fecha = request.GET.get("fecha")

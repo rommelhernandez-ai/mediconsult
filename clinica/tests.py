@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth.models import Group, User
 from django.test import TestCase
@@ -121,6 +122,10 @@ class CitasTests(TestCase):
         Horario.objects.create(medico=self.medico, dia_semana=2, hora_inicio="09:00", hora_fin="12:00")
         Horario.objects.create(medico=self.medico, dia_semana=2, hora_inicio="15:00", hora_fin="19:00")
 
+        simulador = patch("clinica.forms.obtener_festivos", return_value={})
+        self.festivos_api = simulador.start()
+        self.addCleanup(simulador.stop)
+
     def datos_cita(self, **cambios):
         datos = {
             "paciente": self.paciente.pk,
@@ -147,3 +152,15 @@ class CitasTests(TestCase):
         formulario = CitaForm(self.datos_cita())
         self.assertFalse(formulario.is_valid())
         self.assertIn("medico", formulario.errors)
+
+    def test_rechaza_cita_en_dia_festivo(self):
+        self.festivos_api.return_value = {self.proximo_miercoles: "Día festivo de prueba"}
+        formulario = CitaForm(self.datos_cita())
+        self.assertFalse(formulario.is_valid())
+        self.assertIn("fecha", formulario.errors)
+
+    def test_agenda_aunque_falle_la_api_de_festivos(self):
+        self.festivos_api.return_value = None
+        formulario = CitaForm(self.datos_cita())
+        self.assertTrue(formulario.is_valid(), formulario.errors)
+        self.assertTrue(formulario.festivos_no_disponibles)
