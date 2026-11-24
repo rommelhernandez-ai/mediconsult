@@ -59,6 +59,14 @@ python manage.py medir_rendimiento
 - `test` ejecuta las 9 pruebas unitarias.
 - `medir_rendimiento` mide el tiempo de la consulta de días festivos. Con la caché, el promedio bajó de 183.7 ms a 37.8 ms.
 
+## Datos de demostración
+
+```
+python manage.py cargar_demo
+```
+
+Borra los datos de la clínica y carga médicos, horarios, pacientes y citas ficticios de demostración. No modifica los usuarios.
+
 ## Estructura
 
 ```
