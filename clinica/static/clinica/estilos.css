@@ -1,0 +1,171 @@
+/* Colores de MediConsult */
+:root {
+    --azul-marino: #0b2a4f;
+    --azul: #1565d8;
+    --azul-oscuro: #0d4fb0;
+    --fondo: #eef4fb;
+    --texto: #0f1f33;
+    --texto-suave: #52627a;
+    --borde: #e3eaf3;
+}
+
+body {
+    font-family: Inter, system-ui, sans-serif;
+    color: var(--texto);
+    background: var(--fondo);
+}
+
+/* Estructura: menú lateral + contenido */
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.barra-lateral {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--azul-marino);
+    color: #fff;
+    padding: 24px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.contenido {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 32px;
+}
+
+.marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.marca:hover {
+    color: #fff;
+}
+
+/* Menú */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu a {
+    padding: 11px 14px;
+    border-radius: 10px;
+    color: #d6e2f3;
+    text-decoration: none;
+}
+
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.menu a.activo {
+    background: var(--azul);
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Usuario y cerrar sesión */
+.usuario {
+    margin-top: auto;
+    padding: 16px 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.usuario small {
+    display: block;
+    color: #c4d3e8;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--azul);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.salir {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: transparent;
+    color: #d6e2f3;
+    text-align: left;
+}
+
+.salir:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* Encabezado de la página de login */
+.encabezado {
+    background: var(--azul-marino);
+    padding: 16px 28px;
+}
+
+/* Bootstrap con los colores de MediConsult */
+.btn-primary {
+    --bs-btn-bg: var(--azul);
+    --bs-btn-border-color: var(--azul);
+    --bs-btn-hover-bg: var(--azul-oscuro);
+    --bs-btn-hover-border-color: var(--azul-oscuro);
+    --bs-btn-active-bg: var(--azul-oscuro);
+}
+
+.card {
+    border-color: var(--borde);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(11, 42, 79, 0.05);
+}
+
+/* Errores de los formularios en rojo */
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0;
+    color: #a3202c;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* En celular, el menú pasa arriba */
+@media (max-width: 768px) {
+    .app {
+        flex-direction: column;
+    }
+
+    .barra-lateral {
+        width: 100%;
+    }
+
+    .menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .contenido {
+        padding: 20px;
+    }
+}
