@@ -169,3 +169,244 @@ body {
         padding: 20px;
     }
 }
+
+/* ---------- Pulido visual ---------- */
+
+/* Títulos */
+.contenido h1 {
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+}
+
+.contenido h2 {
+    font-weight: 700;
+}
+
+/* Tarjetas */
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Formularios */
+.card form p {
+    margin-bottom: 1rem;
+}
+
+.card form label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    padding: 0.55rem 0.8rem;
+    border-color: #cfd9e6;
+    border-radius: 10px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 0.2rem rgba(21, 101, 216, 0.15);
+}
+
+/* Botones */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    border-radius: 8px;
+}
+
+/* Tablas */
+.table-responsive {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(11, 42, 79, 0.05);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    padding: 0.9rem 1rem;
+    background: #f5f8fc;
+    border-bottom: 1px solid var(--borde);
+    color: var(--texto-suave);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.table td {
+    padding: 0.85rem 1rem;
+    border-color: #edf1f7;
+    vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: transparent;
+}
+
+.table > tbody > tr:hover > * {
+    --bs-table-bg-state: #f5f9ff;
+}
+
+/* Alertas */
+.alert {
+    border: none;
+    border-radius: 12px;
+}
+
+/* Números del inicio */
+.contenido .fs-3 {
+    color: var(--azul);
+}
+
+/* Estado de las citas */
+.estado {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.estado-programada {
+    background: #dbe8fb;
+    color: #0b3a80;
+}
+
+.estado-atendida {
+    background: #d5efdf;
+    color: #0f4a2b;
+}
+
+.estado-cancelada {
+    background: #fde8ea;
+    color: #8a1c27;
+}
+/* ---------- Inicio de sesión ---------- */
+.login {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login::before,
+.login::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.login::before {
+    width: 420px;
+    height: 420px;
+    left: -140px;
+    top: 180px;
+    background: #e1ecf9;
+}
+
+.login::after {
+    width: 520px;
+    height: 520px;
+    right: -160px;
+    bottom: -200px;
+    background: #dbe8f8;
+}
+
+.login-tarjeta {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(11, 42, 79, 0.08);
+    text-align: center;
+}
+
+.login-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #e3eefc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.login-subtitulo {
+    margin: 4px 0 20px;
+    color: var(--texto-suave);
+}
+
+.login form,
+.login .alert {
+    text-align: left;
+}
+
+.login label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.campo-icono {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 0 14px;
+    background: #fff;
+    border: 1px solid #cfd9e6;
+    border-radius: 10px;
+}
+
+.campo-icono:focus-within {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 0.2rem rgba(21, 101, 216, 0.15);
+}
+
+.campo-icono input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+}
+
+.login .btn {
+    padding: 12px;
+    font-weight: 600;
+}
+
+.login-pie {
+    margin: 20px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--borde);
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+}
