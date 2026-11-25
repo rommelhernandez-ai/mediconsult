@@ -3,9 +3,10 @@
 {% block contenido %}
 <h1 class="h3">Agenda de citas</h1>
 <div class="row g-4">
+    {% if puede_agendar %}
     <section class="col-lg-4">
         <div class="card card-body">
-            <h2 class="h5">Agendar cita</h2>
+            <h2 class="h5">{% if es_paciente %}Solicitar cita{% else %}Agendar cita{% endif %}</h2>
             <p class="small text-muted">El horario debe estar registrado para el médico y no tener otra cita.</p>
             <form method="post">
                 {% csrf_token %}
@@ -14,8 +15,9 @@
             </form>
         </div>
     </section>
+    {% endif %}
 
-    <section class="col-lg-8">
+    <section class="{% if puede_agendar %}col-lg-8{% else %}col-12{% endif %}">
         <form method="get" class="d-flex gap-2 mb-3">
             <input class="form-control" type="date" name="fecha" value="{{ filtro_fecha }}" aria-label="Fecha">
             <button class="btn btn-outline-secondary text-nowrap">Buscar fecha</button>
@@ -41,6 +43,7 @@
                         <td>{{ cita.paciente }}<br><small>{{ cita.medico }}</small></td>
                         <td><span class="estado estado-{{ cita.estado|lower }}">{{ cita.get_estado_display }}</span></td>
                         <td>
+                            {% if puede_cambiar_estado %}
                             {% if cita.estado == "PROGRAMADA" %}
                             <div class="d-flex gap-1">
                                 <form method="post" action="{% url 'cambiar_estado' cita.id 'ATENDIDA' %}">
@@ -52,6 +55,7 @@
                                     <button class="btn btn-sm btn-outline-danger">Cancelar</button>
                                 </form>
                             </div>
+                            {% endif %}
                             {% endif %}
                         </td>
                     </tr>

@@ -18,9 +18,15 @@
 
         <nav class="menu" aria-label="Principal">
             <a href="{% url 'inicio' %}" {% if pagina == "inicio" %}class="activo"{% endif %}>Inicio</a>
+            {% if es_paciente %}
+            <a href="{% url 'agenda' %}" {% if pagina == "agenda" %}class="activo"{% endif %}>Mis citas</a>
+            {% elif es_medico %}
+            <a href="{% url 'agenda' %}" {% if pagina == "agenda" %}class="activo"{% endif %}>Mi agenda</a>
+            {% else %}
             <a href="{% url 'pacientes' %}" {% if pagina == "pacientes" or pagina == "editar_paciente" %}class="activo"{% endif %}>Pacientes</a>
             <a href="{% url 'agenda' %}" {% if pagina == "agenda" %}class="activo"{% endif %}>Agenda</a>
-            {% if es_administrador %}
+            {% endif %}
+            {% if es_administrador or es_recepcionista or es_paciente %}
             <a href="{% url 'medicos' %}" {% if pagina == "medicos" or pagina == "editar_medico" %}class="activo"{% endif %}>Médicos</a>
             {% endif %}
         </nav>
@@ -28,8 +34,8 @@
         <div class="usuario">
             <span class="avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
             <span>
-                <strong>{{ user.username }}</strong>
-                <small>{% if es_administrador %}Administrador{% else %}Recepcionista{% endif %}</small>
+                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                <small>{{ rol_nombre }}</small>
             </span>
         </div>
         <form method="post" action="{% url 'logout' %}">
