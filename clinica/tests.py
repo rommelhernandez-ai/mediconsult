@@ -33,18 +33,115 @@ class CuentasTests(TestCase):
         self.assertEqual(respuesta.wsgi_request.user, usuario)
         self.assertContains(self.client.get(reverse("inicio")), "Paciente")
 
-    def test_login_rechaza_un_rol_que_no_pertenece_a_la_cuenta(self):
+    def test_administrador_crea_cuentas_con_su_perfil_y_rol(self):
+        administrador = User.objects.create_user(
+            username="admin_cuentas",
+            password="clave-segura",
+        )
+        administrador.groups.add(Group.objects.get(name="Administrador"))
+        self.client.force_login(administrador)
+
+        datos_base = {
+            "nombre": "Sofía",
+            "apellidos": "Ramírez",
+            "correo": "sofia@example.com",
+            "telefono": "5554443322",
+            "contrasena": "S7!qL9#vP2@k",
+            "confirmar_contrasena": "S7!qL9#vP2@k",
+        }
+        cuentas = (
+            ("paciente", "sofia_paciente", {"fecha_nacimiento": "1990-05-10"}),
+            ("medico", "sofia_medica", {"especialidad": "GENERAL"}),
+            ("recepcionista", "sofia_recepcion", {}),
+        )
+
+        for rol, username, campos in cuentas:
+            respuesta = self.client.post(
+                reverse("crear_cuenta"),
+                {
+                    **datos_base,
+                    **campos,
+                    "rol": rol,
+                    "usuario_login": username,
+                },
+            )
+            self.assertRedirects(respuesta, reverse("crear_cuenta"))
+
+            usuario = User.objects.get(username=username)
+            self.assertTrue(usuario.check_password(datos_base["contrasena"]))
+            self.assertTrue(
+                usuario.groups.filter(
+                    name={
+                        "paciente": "Paciente",
+                        "medico": "Médico",
+                        "recepcionista": "Recepcionista",
+                    }[rol]
+                ).exists()
+            )
+            if rol == "paciente":
+                self.assertEqual(usuario.perfil_paciente.fecha_nacimiento.isoformat(), "1990-05-10")
+            elif rol == "medico":
+                self.assertEqual(usuario.perfil_medico.especialidad, "GENERAL")
+
+    def test_solo_administrador_puede_abrir_creacion_de_cuentas(self):
+        recepcionista = User.objects.create_user(
+            username="recepcion",
+            password="clave-segura",
+        )
+        recepcionista.groups.add(Group.objects.get(name="Recepcionista"))
+        self.client.force_login(recepcionista)
+
+        respuesta = self.client.get(reverse("crear_cuenta"))
+
+        self.assertEqual(respuesta.status_code, 403)
+
+    def test_login_detecta_automaticamente_el_rol_de_recepcionista(self):
         usuario = User.objects.create_user(username="recepcion", password="clave-segura")
         usuario.groups.add(Group.objects.get(name="Recepcionista"))
 
+        self.assertNotContains(self.client.get(reverse("login")), "Entrar como")
         respuesta = self.client.post(
             reverse("login"),
-            {"username": "recepcion", "password": "clave-segura", "rol": "paciente"},
+            {"username": "recepcion", "password": "clave-segura"},
+        )
+
+        self.assertRedirects(respuesta, reverse("inicio"))
+        self.assertContains(self.client.get(reverse("inicio")), "Recepcionista")
+
+    def test_login_rechaza_cuenta_sin_rol(self):
+        usuario = User.objects.create_user(username="sin_rol", password="clave-segura")
+
+        respuesta = self.client.post(
+            reverse("login"),
+            {"username": "sin_rol", "password": "clave-segura"},
         )
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertFalse(respuesta.wsgi_request.user.is_authenticated)
-        self.assertContains(respuesta, "Tu cuenta no tiene acceso con el rol seleccionado.")
+        self.assertContains(respuesta, "No se pudo determinar el rol de esta cuenta.")
+
+    def test_login_rechaza_cuenta_con_roles_ambiguos(self):
+        usuario = User.objects.create_user(username="varios_roles", password="clave-segura")
+        usuario.groups.add(
+            Group.objects.get(name="Médico"),
+            Group.objects.get(name="Recepcionista"),
+        )
+        Medico.objects.create(
+            usuario=usuario,
+            nombre="Elena",
+            apellidos="García",
+            especialidad="GENERAL",
+            telefono="5550000000",
+        )
+
+        respuesta = self.client.post(
+            reverse("login"),
+            {"username": "varios_roles", "password": "clave-segura"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertFalse(respuesta.wsgi_request.user.is_authenticated)
+        self.assertContains(respuesta, "No se pudo determinar el rol de esta cuenta.")
 
     def test_paciente_solo_ve_sus_citas_y_no_puede_abrir_pacientes(self):
         usuario = User.objects.create_user(username="ana", password="clave-segura")
@@ -140,7 +237,7 @@ class CuentasTests(TestCase):
         )
         acceso = self.client.post(
             reverse("login"),
-            {"username": "elena", "password": "clave-segura", "rol": "medico"},
+            {"username": "elena", "password": "clave-segura"},
         )
         self.assertRedirects(acceso, reverse("inicio"))
         respuesta = self.client.get(reverse("agenda"))
@@ -154,6 +251,7 @@ class CuentasTests(TestCase):
 class PacientesTests(TestCase):
     def setUp(self):
         self.usuario = User.objects.create_user(username="recepcion", password="clave-segura")
+        self.usuario.groups.add(Group.objects.get(name="Recepcionista"))
         self.client.force_login(self.usuario)
         self.paciente = Paciente.objects.create(
             nombre="Ana",
@@ -232,7 +330,6 @@ class MedicosTests(TestCase):
             {
                 "username": "sofia_medica",
                 "password": "S7!qL9#vP2@k",
-                "rol": "medico",
             },
         )
         self.assertRedirects(acceso, reverse("inicio"))
@@ -316,7 +413,6 @@ class MedicosTests(TestCase):
             {
                 "username": "elena_consultorio",
                 "password": "Q8!vR4#mT2@x",
-                "rol": "medico",
             },
         )
         self.assertRedirects(acceso, reverse("inicio"))

@@ -18,6 +18,9 @@
 
         <nav class="menu" aria-label="Principal">
             <a href="{% url 'inicio' %}" {% if pagina == "inicio" %}class="activo"{% endif %}>Inicio</a>
+            {% if es_administrador %}
+            <a href="{% url 'crear_cuenta' %}" {% if pagina == "crear_cuenta" %}class="activo"{% endif %}>Crear cuentas</a>
+            {% endif %}
             {% if es_paciente %}
             <a href="{% url 'agenda' %}" {% if pagina == "agenda" %}class="activo"{% endif %}>Mis citas</a>
             {% elif es_medico %}

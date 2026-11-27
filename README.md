@@ -6,7 +6,7 @@ Sistema web para organizar las citas de un consultorio médico pequeño. Proyect
 
 ## Funciones
 
-- Inicio de sesión con roles de **Paciente**, **Médico**, **Recepcionista** y **Administrador**.
+- Inicio de sesión que detecta automáticamente el rol (**Paciente**, **Médico**, **Recepcionista** o **Administrador**) desde la cuenta.
 - Registro público de pacientes y consulta privada de sus propias citas.
 - **Pacientes:** registrar, buscar y editar.
 - **Médicos y horarios** (solo Administrador): registrar médicos, sus especialidades y sus días y horas de atención.
@@ -42,11 +42,11 @@ Después abre http://127.0.0.1:8000/ e inicia sesión con el superusuario.
 
 ## Roles
 
-Los grupos **Administrador**, **Recepcionista**, **Paciente** y **Médico** se crean solos con `migrate`. Los pacientes pueden crear su propia cuenta desde **Regístrate como paciente** en la pantalla de acceso. Para registrar un médico, el administrador usa el formulario **Médicos** e indica el nombre de usuario y la contraseña inicial; el sistema crea y vincula su cuenta automáticamente. Las cuentas de recepción se crean desde **Usuarios** en Django Admin y se asignan al grupo **Recepcionista**.
+Los grupos **Administrador**, **Recepcionista**, **Paciente** y **Médico** se crean solos con `migrate`. Al iniciar sesión, MediConsult determina el rol a partir del grupo asignado a la cuenta; no se selecciona manualmente. Una cuenta debe tener exactamente un rol para poder entrar. Desde **Crear cuentas**, el administrador puede crear las credenciales y el perfil correspondiente para pacientes, médicos y recepcionistas. Los pacientes también pueden crear su propia cuenta desde **Regístrate como paciente** en la pantalla de acceso. El formulario **Médicos** sigue permitiendo registrar médicos con credenciales.
 
 1. Entra a http://127.0.0.1:8000/ con una cuenta de administrador.
-2. Abre **Médicos** y registra al médico con las credenciales que usará para iniciar sesión.
-3. Comparte con el médico el nombre de usuario y la contraseña inicial definidos en el formulario. Al editar el médico, el administrador puede cambiar el usuario y definir una contraseña nueva; si deja la contraseña vacía, se conserva la actual.
+2. Abre **Crear cuentas**, selecciona el rol y completa el nombre de usuario y la contraseña inicial, además de los datos de perfil solicitados.
+3. Comparte las credenciales iniciales con la persona correspondiente. Para cambiar la contraseña de un médico ya registrado desde **Médicos**, el administrador puede definir una nueva; si deja el campo vacío, se conserva la actual.
 
 Los pacientes solo pueden consultar y agendar sus propias citas, y ver médicos activos. Los médicos ven únicamente su agenda y sus citas asignadas. Recepción puede consultar todos los pacientes, médicos, citas y agendas, además de gestionar pacientes y citas. Solo el administrador puede registrar o editar médicos y horarios.
 

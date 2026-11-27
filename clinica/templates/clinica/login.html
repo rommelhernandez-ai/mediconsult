@@ -12,15 +12,12 @@
         <p class="login-subtitulo">Sistema de citas del consultorio</p>
 
         {% if form.errors %}
-        <div class="alert alert-danger">{{ form.non_field_errors }}{{ form.rol.errors }}{% if form.username.errors or form.password.errors %}Usuario o contraseña incorrectos.{% endif %}</div>
+        <div class="alert alert-danger">{{ form.non_field_errors }}{% if form.username.errors or form.password.errors %}Usuario o contraseña incorrectos.{% endif %}</div>
         {% endif %}
 
         <form method="post">
             {% csrf_token %}
             {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-            <label for="{{ form.rol.id_for_label }}">{{ form.rol.label }}</label>
-            {{ form.rol }}
-
             <label for="id_username">Usuario</label>
             <div class="campo-icono">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52627a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>

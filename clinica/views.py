@@ -13,11 +13,13 @@ from django.utils import timezone
 
 from .forms import (
     CitaForm,
+    CrearCuentaForm,
     HorarioForm,
     InicioSesionForm,
     MedicoForm,
     PacienteForm,
     RegistroPacienteForm,
+    roles_disponibles,
 )
 from .models import Cita, Horario, Medico, Paciente
 from .permissions import administrador_requerido, rol_actual, roles_requeridos
@@ -29,7 +31,7 @@ class InicioSesionView(LoginView):
 
     def form_valid(self, form):
         respuesta = super().form_valid(form)
-        self.request.session["rol_activo"] = form.cleaned_data["rol"]
+        self.request.session["rol_activo"] = roles_disponibles(form.get_user())[0]
         return respuesta
 
 
@@ -258,6 +260,52 @@ def cambiar_estado(request, cita_id, estado):
         cita.save(update_fields=["estado"])
         messages.success(request, "Estado de la cita actualizado.")
     return redirect("agenda")
+
+
+@login_required
+@administrador_requerido
+def crear_cuenta(request):
+    formulario = CrearCuentaForm(request.POST or None)
+    if request.method == "POST" and formulario.is_valid():
+        datos = formulario.cleaned_data
+        nombres_grupo = {
+            "paciente": "Paciente",
+            "medico": "Médico",
+            "recepcionista": "Recepcionista",
+        }
+        with transaction.atomic():
+            usuario = User.objects.create_user(
+                username=datos["usuario_login"],
+                password=datos["contrasena"],
+                first_name=datos["nombre"],
+                last_name=datos["apellidos"],
+                email=datos["correo"],
+            )
+            grupo, _ = Group.objects.get_or_create(name=nombres_grupo[datos["rol"]])
+            usuario.groups.add(grupo)
+            if datos["rol"] == "paciente":
+                Paciente.objects.create(
+                    usuario=usuario,
+                    nombre=datos["nombre"],
+                    apellidos=datos["apellidos"],
+                    fecha_nacimiento=datos["fecha_nacimiento"],
+                    telefono=datos["telefono"],
+                    correo=datos["correo"],
+                )
+            elif datos["rol"] == "medico":
+                Medico.objects.create(
+                    usuario=usuario,
+                    nombre=datos["nombre"],
+                    apellidos=datos["apellidos"],
+                    especialidad=datos["especialidad"],
+                    telefono=datos["telefono"],
+                )
+        messages.success(
+            request,
+            f"Cuenta de {dict(CrearCuentaForm.ROLES)[datos['rol']]} creada.",
+        )
+        return redirect("crear_cuenta")
+    return render(request, "clinica/cuentas.html", {"formulario": formulario})
 
 
 def registro_paciente(request):

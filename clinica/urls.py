@@ -12,6 +12,7 @@ urlpatterns = [
     path("horarios/nuevo/", views.agregar_horario, name="agregar_horario"),
     path("agenda/", views.agenda, name="agenda"),
     path("citas/<int:cita_id>/<str:estado>/", views.cambiar_estado, name="cambiar_estado"),
+    path("cuentas/nueva/", views.crear_cuenta, name="crear_cuenta"),
     path("login/", views.InicioSesionView.as_view(), name="login"),
     path("registro/", views.registro_paciente, name="registro_paciente"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),

@@ -1,0 +1,75 @@
+{% extends "clinica/base.html" %}
+{% block titulo %}Crear cuentas | MediConsult{% endblock %}
+{% block contenido %}
+<h1 class="h3">Crear cuentas</h1>
+<p class="text-muted">Crea el acceso y el perfil de pacientes, médicos o recepcionistas.</p>
+<div class="card card-body" style="max-width: 760px">
+    <form method="post">
+        {% csrf_token %}
+        {{ formulario.non_field_errors }}
+        <div class="mb-3">
+            {{ formulario.rol.label_tag }}
+            {{ formulario.rol }}
+            {{ formulario.rol.errors }}
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                {{ formulario.nombre.label_tag }}
+                {{ formulario.nombre }}
+                {{ formulario.nombre.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.apellidos.label_tag }}
+                {{ formulario.apellidos }}
+                {{ formulario.apellidos.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.usuario_login.label_tag }}
+                {{ formulario.usuario_login }}
+                {{ formulario.usuario_login.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.correo.label_tag }}
+                {{ formulario.correo }}
+                {{ formulario.correo.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.telefono.label_tag }}
+                {{ formulario.telefono }}
+                {{ formulario.telefono.errors }}
+            </div>
+            <div class="col-md-6" data-rol-campos="paciente">
+                {{ formulario.fecha_nacimiento.label_tag }}
+                {{ formulario.fecha_nacimiento }}
+                {{ formulario.fecha_nacimiento.errors }}
+            </div>
+            <div class="col-md-6" data-rol-campos="medico">
+                {{ formulario.especialidad.label_tag }}
+                {{ formulario.especialidad }}
+                {{ formulario.especialidad.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.contrasena.label_tag }}
+                {{ formulario.contrasena }}
+                {{ formulario.contrasena.errors }}
+            </div>
+            <div class="col-md-6">
+                {{ formulario.confirmar_contrasena.label_tag }}
+                {{ formulario.confirmar_contrasena }}
+                {{ formulario.confirmar_contrasena.errors }}
+            </div>
+        </div>
+        <button class="btn btn-primary mt-4" type="submit">Crear cuenta</button>
+    </form>
+</div>
+<script>
+    const rolCuenta = document.getElementById("id_rol");
+    const actualizarCamposRol = () => {
+        document.querySelectorAll("[data-rol-campos]").forEach((grupo) => {
+            grupo.hidden = grupo.dataset.rolCampos !== rolCuenta.value;
+        });
+    };
+    rolCuenta.addEventListener("change", actualizarCamposRol);
+    actualizarCamposRol();
+</script>
+{% endblock %}

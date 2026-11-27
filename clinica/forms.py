@@ -10,27 +10,14 @@ from .models import Cita, Horario, Medico, Paciente
 from .servicios import obtener_festivos
 
 
-ROLES = (
-    ("paciente", "Paciente"),
-    ("medico", "Médico"),
-    ("recepcionista", "Recepcionista"),
-    ("administrador", "Administrador"),
-)
-
-
 class InicioSesionForm(AuthenticationForm):
-    rol = forms.ChoiceField(choices=ROLES, label="Entrar como")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["rol"].widget.attrs["class"] = "form-select"
-
     def clean(self):
         datos = super().clean()
         usuario = self.get_user()
-        rol = datos.get("rol")
-        if usuario and rol not in roles_disponibles(usuario):
-            raise ValidationError("Tu cuenta no tiene acceso con el rol seleccionado.")
+        if usuario and len(roles_disponibles(usuario)) != 1:
+            raise ValidationError(
+                "No se pudo determinar el rol de esta cuenta. Contacta al administrador."
+            )
         return datos
 
 
@@ -52,10 +39,6 @@ def roles_disponibles(usuario):
     if usuario.groups.filter(name="Recepcionista").exists():
         roles.append("recepcionista")
 
-    if not roles and not usuario.groups.filter(
-        name__in=("Paciente", "Médico", "Recepcionista", "Administrador")
-    ).exists():
-        return ("recepcionista",)
     return tuple(roles)
 
 
@@ -99,6 +82,80 @@ class PacienteForm(FormularioSimple):
         model = Paciente
         fields = ["nombre", "apellidos", "fecha_nacimiento", "telefono", "correo"]
         widgets = {"fecha_nacimiento": forms.DateInput(attrs={"type": "date"})}
+
+
+class CrearCuentaForm(forms.Form):
+    ROLES = (
+        ("paciente", "Paciente"),
+        ("medico", "Médico"),
+        ("recepcionista", "Recepcionista"),
+    )
+
+    rol = forms.ChoiceField(label="Tipo de cuenta", choices=ROLES)
+    nombre = forms.CharField(label="Nombre", max_length=100)
+    apellidos = forms.CharField(label="Apellidos", max_length=100)
+    usuario_login = forms.CharField(
+        label="Nombre de usuario",
+        max_length=150,
+        validators=[UnicodeUsernameValidator()],
+    )
+    correo = forms.EmailField(label="Correo electrónico", required=False)
+    telefono = forms.CharField(label="Teléfono", max_length=15, required=False)
+    fecha_nacimiento = forms.DateField(
+        label="Fecha de nacimiento",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    especialidad = forms.ChoiceField(
+        label="Especialidad",
+        required=False,
+        choices=[("", "Selecciona una especialidad"), *Medico.ESPECIALIDADES],
+    )
+    contrasena = forms.CharField(label="Contraseña", widget=forms.PasswordInput)
+    confirmar_contrasena = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for campo in self.fields.values():
+            if isinstance(campo.widget, forms.Select):
+                campo.widget.attrs["class"] = "form-select"
+            else:
+                campo.widget.attrs["class"] = "form-control"
+
+        rol = self.data.get("rol") or self.initial.get("rol", "recepcionista")
+        if rol == "paciente":
+            self.fields["fecha_nacimiento"].required = True
+            self.fields["telefono"].required = True
+        elif rol == "medico":
+            self.fields["especialidad"].required = True
+            self.fields["telefono"].required = True
+
+    def clean_usuario_login(self):
+        usuario_login = self.cleaned_data["usuario_login"]
+        if User.objects.filter(username__iexact=usuario_login).exists():
+            raise ValidationError("Ese nombre de usuario ya está en uso.")
+        return usuario_login
+
+    def clean(self):
+        datos = super().clean()
+        contrasena = datos.get("contrasena")
+        confirmar_contrasena = datos.get("confirmar_contrasena")
+        if contrasena and confirmar_contrasena and contrasena != confirmar_contrasena:
+            self.add_error("confirmar_contrasena", "Las contraseñas no coinciden.")
+        if contrasena:
+            usuario = User(
+                username=datos.get("usuario_login", ""),
+                first_name=datos.get("nombre", ""),
+                last_name=datos.get("apellidos", ""),
+            )
+            try:
+                validate_password(contrasena, user=usuario)
+            except ValidationError as error:
+                self.add_error("contrasena", error)
+        return datos
 
 
 class MedicoForm(FormularioSimple):
